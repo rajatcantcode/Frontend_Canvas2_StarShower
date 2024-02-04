@@ -22,7 +22,7 @@ class Star {
     this.y = y;
     this.radius = radius;
     this.color = color;
-    this.velocity = { x: 0, y: 3 };
+    this.velocity = { x: utils.randomIntFromRange(-4, 4), y: 3 };
     this.gravity = 1;
     this.reducedAcceleration = 0.8;
   }
@@ -40,7 +40,7 @@ class Star {
     //When ball hits the bottom of the screen
     //We are adding the velocity.y becuase we want the ball to be fully visible but
     //due to constant acceleration it some parts gets submerged into the ground
-    if (this.y + this.radius + this.velocity.y > canvas.height) {
+    if (this.y + this.radius + this.velocity.y > canvas.height - groundHeight) {
       //we will be decreaing the acceleration of the ball as they hit the bottom
       this.velocity.y = -this.velocity.y * this.reducedAcceleration;
       //When it hits the bottom it creates the miniStars with the help of fxn shatters
@@ -49,6 +49,15 @@ class Star {
       this.velocity.y += this.gravity;
     }
 
+    //Hits side of the screen
+    if (
+      this.x + this.radius + this.velocity.x > canvas.width ||
+      this.x - this.radius <= 0
+    ) {
+      this.velocity.x = -this.velocity.x * this.friction;
+      this.shatters();
+    }
+    this.x += this.velocity.x;
     this.y += this.velocity.y;
   }
 
@@ -97,7 +106,7 @@ class MiniStar extends Star {
     //When ball hits the bottom of the screen
     //We are adding the velocity.y becuase we want the ball to be fully visible but
     //due to constant acceleration it some parts gets submerged into the ground
-    if (this.y + this.radius + this.velocity.y > canvas.height) {
+    if (this.y + this.radius + this.velocity.y > canvas.height - groundHeight) {
       //we will be decreaing the acceleration of the ball as they hit the bottom
       this.velocity.y = -this.velocity.y * this.reducedAcceleration;
     } else {
@@ -144,6 +153,9 @@ backgroundGradient.addColorStop(1, "#4c729e"); // Lighter blue
 let stars;
 let miniStars;
 let backgroundStars;
+let ticker = 0; //this is going to helps us in shoot stars
+let randomSpawner = 75;
+var groundHeight = canvas.height * 0.15;
 
 function init() {
   stars = [];
@@ -176,6 +188,10 @@ function animate() {
   createMountainRange(2, canvas.height - 100, "#D2B48C"); // Tan
   createMountainRange(3, canvas.height - 300, "#C7212A"); // Dark Reddish Brown
 
+  //ground
+  c.fillStyle = "#182028";
+  c.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
   //Big Stars
   stars.forEach((star, i) => {
     star.update();
@@ -191,6 +207,14 @@ function animate() {
       miniStars.splice(i, 1);
     }
   });
+  ticker++;
+
+  if (ticker % randomSpawner === 0) {
+    const radius = 30;
+    const x = Math.max(radius, Math.random() * canvas.width - radius);
+    stars.push(new Star(x, -100, radius, "#E3EAEF"));
+    randomSpawner = utils.randomIntFromRange(75, 400);
+  }
 }
 animate();
 
