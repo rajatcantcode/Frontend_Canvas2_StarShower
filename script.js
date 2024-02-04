@@ -1,3 +1,5 @@
+import utils from "/utils.js";
+
 var canvas = document.querySelector("canvas");
 var c = canvas.getContext("2d");
 
@@ -13,7 +15,7 @@ const colors = ["#2185C5", "#7ECEFD", "#FFF6E5", "#FF7F66"];
  * *-----------------------------
  * ------------------------------------------
  */
-// Objects
+//Star
 class Star {
   constructor(x, y, radius, color) {
     this.x = x;
@@ -51,6 +53,10 @@ class Star {
   }
 
   shatters() {
+    //We want to make the big star when it hits the ground
+
+    this.radius -= 5;
+
     for (let i = 0; i < 8; i++) {
       miniStars.push(new MiniStar(this.x, this.y, 2, "red"));
     }
@@ -58,13 +64,19 @@ class Star {
   }
 }
 
+//MiniStar
 class MiniStar extends Star {
   constructor(x, y, radius, color) {
     // using inheritance for cleaner code
     // Call the constructor of the parent class (Stars)
     super(x, y, radius, color);
+    this.velocity = {
+      x: utils.randomIntFromRange(-5, 5),
+      y: utils.randomIntFromRange(-15, 15),
+    };
     this.friction = 0.8;
-    this.gravity = 1;
+    this.gravity = 0.3;
+    this.ttl = 100; //time to live -> how many frames should mini stars should live
   }
 
   draw() {
@@ -87,7 +99,9 @@ class MiniStar extends Star {
       this.velocity.y += this.gravity;
     }
 
+    this.x += this.velocity.x;
     this.y += this.velocity.y;
+    this.ttl -= 1;
   }
 }
 
@@ -112,11 +126,17 @@ init();
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  stars.forEach((star) => {
+  stars.forEach((star, i) => {
     star.update();
+    if (star.radius === 0) {
+      stars.splice(i, 1); //index,how many stars to remove
+    }
   });
-  miniStars.forEach((miniStar) => {
+  miniStars.forEach((miniStar, i) => {
     miniStar.update();
+    if (miniStar.ttl === 0) {
+      miniStars.splice(i, 1);
+    }
   });
 }
 animate();
@@ -125,4 +145,5 @@ animate();
 window.addEventListener("resize", function () {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  init();
 });
