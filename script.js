@@ -1,4 +1,4 @@
-import utils from "/utils.js";
+import utils from "./utils.js";
 
 var canvas = document.querySelector("canvas");
 var c = canvas.getContext("2d");
