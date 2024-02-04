@@ -58,7 +58,7 @@ class Star {
     this.radius -= 5;
 
     for (let i = 0; i < 8; i++) {
-      miniStars.push(new MiniStar(this.x, this.y, 2, "red"));
+      miniStars.push(new MiniStar(this.x, this.y, 3));
     }
     // console.log(miniStars);
   }
@@ -76,15 +76,20 @@ class MiniStar extends Star {
     };
     this.friction = 0.8;
     this.gravity = 0.3;
-    this.ttl = 100; //time to live -> how many frames should mini stars should live
+    this.ttl = 150; //time to live -> how many frames should mini stars should live
+    this.opacity = 1;
   }
 
   draw() {
+    c.save();
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    c.fillStyle = this.color;
+    c.fillStyle = `rgba(227, 234,239,${this.opacity})`;
+    c.shadowColor = "#E3EAEF";
+    c.shadowBlur = 20;
     c.fill();
     c.closePath();
+    c.restore();
   }
 
   update() {
@@ -102,6 +107,26 @@ class MiniStar extends Star {
     this.x += this.velocity.x;
     this.y += this.velocity.y;
     this.ttl -= 1;
+    this.opacity -= 1 / this.tll;
+  }
+}
+
+//MoutainRange
+function createMountainRange(mountainAmount, height, color) {
+  for (var i = 0; i < mountainAmount; i++) {
+    var mountainWidth = canvas.width / mountainAmount;
+
+    // Draw triangle
+    c.beginPath();
+    c.moveTo(i * mountainWidth, canvas.height);
+    c.lineTo(i * mountainWidth + mountainWidth + 325, canvas.height);
+
+    // Triangle peak
+    c.lineTo(i * mountainWidth + mountainWidth / 2, canvas.height - height);
+    c.lineTo(i * mountainWidth - 325, canvas.height);
+    c.fillStyle = color;
+    c.fill();
+    c.closePath();
   }
 }
 
@@ -112,26 +137,54 @@ class MiniStar extends Star {
  * *-----------------------------
  * ------------------------------------------
  */
+var backgroundGradient = c.createLinearGradient(0, 0, 0, canvas.height);
+backgroundGradient.addColorStop(0, "#0f2d4e"); // Darker blue
+backgroundGradient.addColorStop(1, "#4c729e"); // Lighter blue
+
 let stars;
 let miniStars;
+let backgroundStars;
+
 function init() {
   stars = [];
   miniStars = [];
+  backgroundStars = [];
   for (let i = 0; i < 1; i++) {
-    stars.push(new Star(canvas.width / 2, 30, 30, "blue"));
+    stars.push(new Star(canvas.width / 2, 30, 30, "#E3EAEF"));
+  }
+
+  for (let i = 0; i < 150; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const radius = Math.random() * 3;
+    backgroundStars.push(new Star(x, y, radius, "white"));
   }
 }
 init();
 
 function animate() {
   requestAnimationFrame(animate);
-  c.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  c.fillStyle = backgroundGradient;
+  c.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  //background Stars
+  backgroundStars.forEach((star) => {
+    star.draw();
+  });
+  //Moutains
+  createMountainRange(1, canvas.height - 50, "#8B4513"); // Brown
+  createMountainRange(2, canvas.height - 100, "#D2B48C"); // Tan
+  createMountainRange(3, canvas.height - 300, "#C7212A"); // Dark Reddish Brown
+
+  //Big Stars
   stars.forEach((star, i) => {
     star.update();
     if (star.radius === 0) {
       stars.splice(i, 1); //index,how many stars to remove
     }
   });
+
+  //Shattered Stars
   miniStars.forEach((miniStar, i) => {
     miniStar.update();
     if (miniStar.ttl === 0) {
